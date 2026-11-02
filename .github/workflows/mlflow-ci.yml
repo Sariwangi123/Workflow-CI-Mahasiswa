@@ -1,0 +1,46 @@
+name: student-mlflow-ci
+on:
+  workflow_dispatch:
+  push:
+    paths: ['MLProject/**', 'run_project.py', '.github/workflows/mlflow-ci.yml']
+permissions:
+  contents: write
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.7'
+      - name: Install training dependencies
+        run: pip install mlflow==2.19.0 pandas==2.2.3 numpy==2.1.3 scikit-learn==1.5.2 matplotlib==3.9.2 joblib==1.4.2
+      - name: Run MLflow Project and export exact model
+        id: training
+        run: python run_project.py
+      - name: Save run artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: student-model-${{ steps.training.outputs.run_id }}
+          path: |
+            release_artifacts/
+            MLProject/training_artifacts/
+          if-no-files-found: error
+      - name: Store portable model in GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tar -czf student-model.tar.gz -C release_artifacts .
+          gh release create "model-${{ github.run_id }}-${{ github.run_attempt }}" student-model.tar.gz --title "Student model ${{ steps.training.outputs.run_id }}" --notes "Model and run metadata produced by MLflow Project. Source commit: ${{ github.sha }}"
+      - name: Build Docker image with MLflow
+        if: ${{ vars.BUILD_DOCKER_IMAGE == 'true' }}
+        run: mlflow models build-docker --model-uri ./release_artifacts/model --name "${{ secrets.DOCKERHUB_USERNAME }}/student-study-status:${{ github.sha }}"
+      - name: Log in to Docker Hub
+        if: ${{ vars.BUILD_DOCKER_IMAGE == 'true' }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Push image
+        if: ${{ vars.BUILD_DOCKER_IMAGE == 'true' }}
+        run: docker push "${{ secrets.DOCKERHUB_USERNAME }}/student-study-status:${{ github.sha }}"

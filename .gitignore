@@ -1,0 +1,12 @@
+__pycache__/
+.ipynb_checkpoints/
+*.db
+mlartifacts/
+mlruns/
+training_artifacts/
+release_artifacts/
+*.log
+.env
+*.zip
+notebook_outputs/
+windows-ca-bundle.pem
