@@ -17,7 +17,11 @@ jobs:
         run: pip install mlflow==2.19.0 pandas==2.2.3 numpy==2.1.3 scikit-learn==1.5.2 matplotlib==3.9.2 joblib==1.4.2
       - name: Run MLflow Project and export exact model
         id: training
-        run: python run_project.py
+        env:
+          MLFLOW_TRACKING_URI: file://${{ github.workspace }}/mlruns
+        run: |
+          mlflow run MLProject --env-manager=local --experiment-name "Student Status CI"
+          python run_project.py
       - name: Save run artifacts
         uses: actions/upload-artifact@v4
         with:
