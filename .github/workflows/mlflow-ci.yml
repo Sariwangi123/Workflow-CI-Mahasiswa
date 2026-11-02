@@ -34,7 +34,7 @@ jobs:
           gh release create "model-${{ github.run_id }}-${{ github.run_attempt }}" student-model.tar.gz --title "Student model ${{ steps.training.outputs.run_id }}" --notes "Model and run metadata produced by MLflow Project. Source commit: ${{ github.sha }}"
       - name: Build Docker image with MLflow
         if: ${{ vars.BUILD_DOCKER_IMAGE == 'true' }}
-        run: mlflow models build-docker --model-uri ./release_artifacts/model --name "${{ secrets.DOCKERHUB_USERNAME }}/student-study-status:${{ github.sha }}"
+        run: mlflow models build-docker --model-uri ./release_artifacts/model --env-manager local --name "${{ secrets.DOCKERHUB_USERNAME }}/student-study-status:${{ github.sha }}"
       - name: Log in to Docker Hub
         if: ${{ vars.BUILD_DOCKER_IMAGE == 'true' }}
         uses: docker/login-action@v3
