@@ -1,0 +1,2 @@
+https://hub.docker.com/r/rizkasuhana/student-study-status
+rizkasuhana/student-study-status:8b0220a6c4c4a0dd9bb1f2b078b5b5b186515cc1
